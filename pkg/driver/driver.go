@@ -52,11 +52,11 @@ func NewDriver(params InputParams) (*Driver, error) {
 	client := godo.NewFromToken(params.Token)
 
 	return &Driver{
-		name:          params.Name,
-		endpoint:      params.Endpoint,
-		region:        params.Region,
-		storage:       client.Storage,
-		storageAction: client.StorageActions,
+		name:     params.Name,
+		endpoint: params.Endpoint,
+		region:   params.Region,
+		// storage:       client.Storage,
+		// storageAction: client.StorageActions,
 	}, nil
 }
 
