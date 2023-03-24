@@ -49,7 +49,7 @@ func NewDriver(params InputParams) (*Driver, error) {
 		return nil, errors.New("token must be specified")
 	}
 
-	client := godo.NewFromToken(params.Token)
+	// client := godo.NewFromToken(params.Token)
 
 	return &Driver{
 		name:     params.Name,
@@ -62,13 +62,16 @@ func NewDriver(params InputParams) (*Driver, error) {
 
 // Start the gRPC server
 func (d *Driver) Run() error {
+
 	url, err := url.Parse(d.endpoint)
 	if err != nil {
-		return fmt.Errorf("parsing the endpoint %s\n", err.Error())
+		log.Fatalf("Error parsing the endpoint: %s\n", err.Error())
+		return err
 	}
 
 	if url.Scheme != "unix" {
-		return fmt.Errorf("only supported scheme is unix, but provided %s\n", url.Scheme)
+		log.Fatalf("Only supported scheme is unix, but provided %s\n", url.Scheme)
+		return fmt.Errorf("unsupported scheme")
 	}
 
 	grpcAddress := path.Join(url.Host, filepath.FromSlash(url.Path))
@@ -77,7 +80,8 @@ func (d *Driver) Run() error {
 	}
 
 	if err := os.Remove(grpcAddress); err != nil && !os.IsNotExist(err) {
-		return fmt.Errorf("removiong listen address %s\n", err.Error())
+		log.Fatalf("Error removing listen address: %s\n", err.Error())
+		return err
 	}
 
 	// Create a listener to Listen over the Unix Scheme
