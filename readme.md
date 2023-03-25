@@ -10,10 +10,12 @@ The codebase is organized into the following directories and files:
 - `logger/`: A custom logger package used for logging errors and info messages.
   - `log.go`: The main logger implementation file.
 - `manifest/`: Contains Kubernetes YAML configuration files for deploying the CSI plugin.
-  - `service_account.yaml`: Defines the ServiceAccount resource for the CSI plugin.
-  - `storage_class.yaml`: Defines the StorageClass resource to provision volumes using this CSI plugin.
-  - `cluster_role.yaml`: Defines the ClusterRole resource with necessary permissions for the CSI plugin.
-  - `cluster_role_binding.yaml`: Binds the ClusterRole to the ServiceAccount.
+  - `serviceAccount.yaml`: Defines the ServiceAccount resource for the CSI plugin.
+  - `storageClass.yaml`: Defines the StorageClass resource to provision volumes using this CSI plugin.
+  - `clusterRole.yaml`: Defines the ClusterRole resource with necessary permissions for the CSI plugin.
+  - `clusterRoleBinding.yaml`: Binds the ClusterRole to the ServiceAccount.
+  - `controller-plugin.yaml`: Contains configuration specific to your controller plugin deployment, such as StatefulSet, Service, etc.
+  - `secret.yaml`: Defines a Kubernetes Secret that may store sensitive information required by your CSI plugin (e.g., credentials).
 - `pkg/driver/`: Contains core implementation files of the CSI plugin.
   - `driver.go`: Main driver implementation file that initializes and starts the gRPC server.
   - `identity_service.go`: Implements identity-related RPCs in the CSI spec, such as GetPluginInfo, GetPluginCapabilities, and Probe.
@@ -52,4 +54,6 @@ To deploy the CSI plugin on a Kubernetes cluster, apply the manifest files in th
 
 kubectl apply -f manifest/
 
-This will create all necessary resources (ServiceAccount, StorageClass, ClusterRole, and ClusterRoleBinding) and deploy your sample CSI plugin on your Kubernetes cluster.
+This will create all necessary resources (ServiceAccount, StorageClass, ClusterRole, ClusterRoleBinding, Controller Plugin Deployment, and Secret) and deploy your sample CSI plugin on your Kubernetes cluster.
+
+Now, these sections are updated to reflect your project structure and requirements.
