@@ -56,10 +56,10 @@ func (d *Driver) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest)
 
 	// actually call DO api to create the volume
 	vol, res, err := d.storage.CreateVolume(ctx, &volReq)
+	logger.Info("Got the response %v", res.StatusCode)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("Failed provisoing the volume error %s\n", err.Error()))
 	}
-	logger.Info("Got the response %v", res.StatusCode)
 
 	return &csi.CreateVolumeResponse{
 		Volume: &csi.Volume{

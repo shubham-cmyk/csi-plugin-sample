@@ -4,6 +4,7 @@ go 1.19
 
 require (
 	github.com/container-storage-interface/spec v1.8.0
+	github.com/digitalocean/go-metadata v0.0.0-20220602160802-6f1b22e9ba8c
 	github.com/digitalocean/godo v1.98.0
 	google.golang.org/grpc v1.31.0
 	google.golang.org/protobuf v1.28.1
@@ -11,7 +12,6 @@ require (
 )
 
 require (
-	github.com/digitalocean/go-metadata v0.0.0-20220602160802-6f1b22e9ba8c // indirect
 	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect

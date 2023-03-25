@@ -15,6 +15,9 @@ on:
     types:
       - closed
 
+env:
+  KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest

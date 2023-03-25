@@ -1,10 +1,10 @@
 package main
 
 import (
+	logger "csi-plugin/logger"
 	. "csi-plugin/pkg"
 	. "csi-plugin/pkg/driver"
 	"flag"
-	"fmt"
 	"os"
 )
 
@@ -26,7 +26,7 @@ func main() {
 		if envEndpoint != "" {
 			endpoint = &envEndpoint
 		} else {
-			fmt.Println("Error: Endpoint not provided as an argument or environment variable.")
+			logger.Error("Endpoint not provided as an argument or environment variable.")
 			return
 		}
 	}
@@ -37,7 +37,7 @@ func main() {
 		if envToken != "" {
 			token = &envToken
 		} else {
-			fmt.Println("Error: Token not provided as an argument or environment variable.")
+			logger.Error("Token not provided as an argument or environment variable.")
 			return
 		}
 	}
@@ -49,9 +49,11 @@ func main() {
 		Token:    *token,
 	})
 	if err != nil {
-		fmt.Printf("Error %s, creating new instance of driver", err.Error())
+		logger.Error("Error %s, creating new instance of driver", err.Error())
 		return
 	}
 
+	// Start the Driver
+	logger.Info("Starting the Driver")
 	driver.Run()
 }

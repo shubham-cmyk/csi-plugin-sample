@@ -10,6 +10,7 @@ RUN go mod download
 # Copy the go source
 COPY main.go main.go
 COPY pkg/ pkg/
+COPY logger/ logger/
 # Build the binary
 RUN CGO_ENABLED=0 go build -o myapp main.go
 
