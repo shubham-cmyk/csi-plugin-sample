@@ -48,14 +48,19 @@ jobs:
             --remote-name
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
-          printf '%s' "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig.yaml
-          
+          printf '%s' "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig
+
+      - name: Download kubeconfig.yaml
+        uses: actions/download-artifact@v2
+        with:
+          name: kubeconfig
+
       - name: Checkout code
         uses: actions/checkout@v2
           
       - name: Deploy to Kubernetes
         run: |
-          export KUBECONFIG=kubeconfig.yaml
+          export KUBECONFIG=kubeconfig
           
           # Replace placeholder with actual image name in controller-plugin.yaml and save it as new-controller-plugin.yaml
           # sed "s|IMAGE_NAME_PLACEHOLDER|${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}|g" manifest/controller-plugin.yaml > manifest/new-controller-plugin.yaml
