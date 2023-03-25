@@ -51,7 +51,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Kubernetes
-        if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
         run: |
           export KUBECONFIG=kubeconfig.yaml
           
