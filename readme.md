@@ -33,26 +33,25 @@ To build the CSI plugin, run:
 
 ```sh
 go build -o sample-csi-plugin main.go
-
-This command will generate a binary named sample-csi-plugin.
-
+```
 
 Building the Docker Image
 
 To build the Docker image for the CSI plugin, run:
 
-
+```sh
 docker build -t your_dockerhub_username/sample-csi-plugin:latest .
+```
 
 Replace your_dockerhub_username with your actual Docker Hub username.
-
 
 Deploying the CSI Plugin
 
 To deploy the CSI plugin on a Kubernetes cluster, apply the manifest files in the manifest directory:
 
-
+```sh
 kubectl apply -f manifest/
+```
 
 This will create all necessary resources (ServiceAccount, StorageClass, ClusterRole, ClusterRoleBinding, Controller Plugin Deployment, and Secret) and deploy your sample CSI plugin on your Kubernetes cluster.
 
