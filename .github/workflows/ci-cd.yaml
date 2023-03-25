@@ -34,6 +34,11 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}
 
+  deploy:
+    needs: build
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
       - name: Install and configure kubectl
         run: |
           VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
@@ -44,12 +49,7 @@ jobs:
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
           printf '%s' "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig.yaml
-
-  deploy:
-    needs: build
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    steps:
+          
       - name: Deploy to Kubernetes
         run: |
           export KUBECONFIG=kubeconfig.yaml
