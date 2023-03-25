@@ -89,9 +89,11 @@ func (d *Driver) Run() error {
 	csi.RegisterControllerServer(server, d)
 	csi.RegisterIdentityServer(server, d)
 
+	// Starting the Server
+	logger.Info("Starting the gRPC server")
 	err = server.Serve(listener)
 	if err != nil {
-		logger.Error("Got an Error while starting server %v", err)
+		logger.Error("Got an Error while starting gRPC server %v", err)
 		return err
 	}
 
