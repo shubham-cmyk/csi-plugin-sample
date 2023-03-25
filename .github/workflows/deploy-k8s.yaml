@@ -6,7 +6,7 @@ on:
       - main
       - "master"
       - shubham
-      
+
   pull_request:
     branches:
       - main
@@ -22,12 +22,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up kubectl
-      uses: docker://bitnami/kubectl:latest
-      with:
-        entrypoint: ''
-        args: |
-          install --confirm=false --namespace=default
+    # - name: Set up kubectl
+    #   uses: docker://bitnami/kubectl:latest
+    #   with:
+    #     entrypoint: ''
+    #     args: |
+    #       install --confirm=false --namespace=default
 
     - name: Upload manifest files as artifact
       uses: actions/upload-artifact@v2
