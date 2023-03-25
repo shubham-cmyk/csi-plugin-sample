@@ -1,61 +1,70 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "csi-plugin.fullname" . }}
   labels:
-    {{- include "csi-plugin.labels" . | nindent 4 }}
+    app: {{ .Values.labels.app }}
+  name: {{ .Values.name }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  replicas: 1
   selector:
     matchLabels:
-      {{- include "csi-plugin.selectorLabels" . | nindent 6 }}
+      app: {{ .Values.labels.app }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       labels:
-        {{- include "csi-plugin.selectorLabels" . | nindent 8 }}
+        app: {{ .Values.labels.app }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "csi-plugin.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      serviceAccountName: {{ .Values.serviceAccount.name }}
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          ports:
-            - name: http
-              containerPort: 80
-              protocol: TCP
-          livenessProbe:
-            httpGet:
-              path: /
-              port: http
-          readinessProbe:
-            httpGet:
-              path: /
-              port: http
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
+      - image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        name: external-provisioner
+        args:
+        - "--csi-address=$(CSI_ENDPOINT)"
+        env:
+        - name: CSI_ENDPOINT
+          value: /var/lib/csi/sockets/pluginproxy/csi.sock
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy
+          name: domain-socket
+        resources:
+          limits:
+            cpu: "1"
+            memory: "256Mi"
+      - image: k8s.gcr.io/sig-storage/csi-attacher:v3.5.0
+        name: external-attacher
+        args:
+        - "--csi-address=$(CSI_ENDPOINT)"
+        - "-v=5"
+        env:
+        - name: CSI_ENDPOINT
+          value: /var/lib/csi/sockets/pluginproxy/csi.sock
+        volumeMounts:
+        - name: domain-socket
+          mountPath: /var/lib/csi/sockets/pluginproxy
+        resources:
+          limits:
+            cpu: "1"
+            memory: "256Mi"
+      - image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        name: csi-controller-driver
+        resources:
+          limits:
+            cpu: "1"
+            memory: "256Mi"
+        args:
+        - "--endpoint=$(CSI_ENDPOINT)"
+        - "--token=$(DO_TOKEN)"
+        env:
+          - name: CSI_ENDPOINT
+            value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
+          - name: DO_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: do-token
+                key: access-token
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy
+          name: domain-socket
+      volumes:
+      - name: domain-socket
+        emptyDir: {}
