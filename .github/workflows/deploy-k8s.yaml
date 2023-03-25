@@ -44,8 +44,8 @@ jobs:
       env:
         KUBECONFIG: ${{ secrets.KUBECONFIG }}
       run: |
-        kubectl apply -f ${{ github.workspace }}/manifest/serviceAccount.yaml
-        kubectl apply -f ${{ github.workspace }}/manifest/clusterRole.yaml
-        kubectl apply -f ${{ github.workspace }}/manifest/clusterRoleBinding.yaml
-        kubectl apply -f ${{ github.workspace }}/manifest/secret.yaml
-        kubectl apply -f ${{ github.workspace }}/manifest/storageClass.yaml
+        kubectl apply -f   manifest/serviceAccount.yaml
+        kubectl apply -f   manifest/clusterRole.yaml
+        kubectl apply -f   manifest/clusterRoleBinding.yaml
+        kubectl apply -f   manifest/secret.yaml
+        kubectl apply -f   manifest/storageClass.yaml
