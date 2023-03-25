@@ -42,10 +42,11 @@ jobs:
 
     - name: Deploy to Kubernetes
       env:
-        KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        KUBECONFIG: ${{ github.workspace }}/config/my-kubeconfig.yaml
       run: |
-        kubectl apply -f   manifest/serviceAccount.yaml
-        kubectl apply -f   manifest/clusterRole.yaml
-        kubectl apply -f   manifest/clusterRoleBinding.yaml
-        kubectl apply -f   manifest/secret.yaml
-        kubectl apply -f   manifest/storageClass.yaml
+        kubectl apply -f manifest/serviceAccount.yaml
+        kubectl apply -f manifest/clusterRole.yaml
+        kubectl apply -f manifest/clusterRoleBinding.yaml
+        kubectl apply -f manifest/secret.yaml
+        kubectl apply -f manifest/storageClass.yaml
+
