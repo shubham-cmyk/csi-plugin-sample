@@ -27,7 +27,7 @@ At root level:
 - `main.go`: Entry point of this application that sets up and starts the driver service
 - `go.mod` and `go.sum` : Go module files containing dependencies information.
 
-## Building the CSI Plugin
+### Building the CSI Plugin
 
 To build the CSI plugin, run:
 
@@ -35,7 +35,7 @@ To build the CSI plugin, run:
 go build -o sample-csi-plugin main.go
 ```
 
-Building the Docker Image
+### Building the Docker Image
 
 To build the Docker image for the CSI plugin, run:
 
@@ -45,7 +45,7 @@ docker build -t your_dockerhub_username/sample-csi-plugin:latest .
 
 Replace your_dockerhub_username with your actual Docker Hub username.
 
-Deploying the CSI Plugin
+### Deploying the CSI Plugin
 
 To deploy the CSI plugin on a Kubernetes cluster, apply the manifest files in the manifest directory:
 
