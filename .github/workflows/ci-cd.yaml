@@ -55,7 +55,7 @@ jobs:
           export KUBECONFIG=kubeconfig.yaml
           
           # Replace placeholder with actual image name in controller-plugin.yaml and save it as new-controller-plugin.yaml
-          sed "s|IMAGE_NAME_PLACEHOLDER|${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}|g" manifest/controller-plugin.yaml > manifest/new-controller-plugin.yaml
+          # sed "s|IMAGE_NAME_PLACEHOLDER|${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}|g" manifest/controller-plugin.yaml > manifest/new-controller-plugin.yaml
           
           kubectl apply -f manifest/serviceAccount.yaml
           kubectl apply -f manifest/clusterRole.yaml
@@ -64,6 +64,7 @@ jobs:
           kubectl apply -f manifest/storageClass.yaml
 
           # Apply the controller Plugin manifest
-          kubectl apply -f manifest/new-controller-plugin.yaml
+          #kubectl apply -f manifest/new-controller-plugin.yaml
+          kubectl apply -f <(sed "s|IMAGE_NAME_PLACEHOLDER|${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}|g" manifest/controller-plugin.yaml)
 
           # Apply the node Plugin manifest
