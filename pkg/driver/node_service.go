@@ -2,8 +2,13 @@ package driver
 
 import (
 	"context"
+	logger "csi-plugin/logger"
+	"strconv"
 
 	"github.com/container-storage-interface/spec/lib/go/csi"
+	metadata "github.com/digitalocean/go-metadata"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (d *Driver) NodeStageVolume(context.Context, *csi.NodeStageVolumeRequest) (*csi.NodeStageVolumeResponse, error) {
@@ -25,8 +30,37 @@ func (d *Driver) NodeExpandVolume(context.Context, *csi.NodeExpandVolumeRequest)
 	return nil, nil
 }
 func (d *Driver) NodeGetCapabilities(context.Context, *csi.NodeGetCapabilitiesRequest) (*csi.NodeGetCapabilitiesResponse, error) {
-	return nil, nil
+	logger.Info("NodeGetCapabilities RPC is called")
+
+	return &csi.NodeGetCapabilitiesResponse{
+		Capabilities: []*csi.NodeServiceCapability{
+			{
+				Type: &csi.NodeServiceCapability_Rpc{
+					Rpc: &csi.NodeServiceCapability_RPC{
+						Type: csi.NodeServiceCapability_RPC_STAGE_UNSTAGE_VOLUME,
+					},
+				},
+			},
+		},
+	}, nil
 }
-func (d *Driver) NodeGetInfo(context.Context, *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
-	return nil, nil
+func (d *Driver) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (*csi.NodeGetInfoResponse, error) {
+	logger.Info("NodeGetInfo RPC is called")
+	mdClient := metadata.NewClient()
+
+	// Get the Node ID using mdClient
+	id, err := mdClient.DropletID()
+	if err != nil {
+		return nil, status.Error(codes.Internal, "Error getting nodeID")
+	}
+
+	return &csi.NodeGetInfoResponse{
+		NodeId:            strconv.Itoa(id),
+		MaxVolumesPerNode: 5,
+		AccessibleTopology: &csi.Topology{
+			Segments: map[string]string{
+				"region": "BLR1",
+			},
+		},
+	}, nil
 }
