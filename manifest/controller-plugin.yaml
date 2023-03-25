@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: controller-plugin
+  name: controller-plugin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: controller-plugin
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: controller-plugin
+    spec:
+      serviceAccountName: csi-sa #Name of the SAervice Account Present for deploying the controller
+      containers:
+      - image: k8s.gcr.io/sig-storage/csi-provisioner:v3.1.0
+        name: external-provisioner
+        args:
+        - "--csi-address=$(CSI_ENDPOINT)"
+        env:
+        - name: CSI_ENDPOINT
+          value: /var/lib/csi/sockets/pluginproxy/csi.sock
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy
+          name: domain-socket
+        resources:
+          limits:
+            cpu: "1"
+            memory: "256Mi"
+      - image: k8s.gcr.io/sig-storage/csi-attacher:v3.5.0
+        name: external-attacher
+        args:
+        - "--csi-address=$(CSI_ENDPOINT)"
+        - "-v=5"
+        env:
+        - name: CSI_ENDPOINT
+          value: /var/lib/csi/sockets/pluginproxy/csi.sock
+        volumeMounts:
+        - name: domain-socket
+          mountPath: /var/lib/csi/sockets/pluginproxy
+        resources:
+          limits:
+            cpu: "1"
+            memory: "256Mi"
+      - image: IMAGE_NAME_PLACEHOLDER #Main Container for the csi controller
+        name: csi-controller-driver
+        resources:
+          limits:
+            cpu: "1"
+            memory: "256Mi"
+        args:
+        - "--endpoint=$(CSI_ENDPOINT)"
+        - "--token=$(DO_TOKEN)"
+        env:
+          - name: CSI_ENDPOINT
+            value: unix:///var/lib/csi/sockets/pluginproxy/csi.sock
+          - name: DO_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: do-token
+                key: access-token
+        volumeMounts:
+        - mountPath: /var/lib/csi/sockets/pluginproxy
+          name: domain-socket
+      volumes:
+      - name: domain-socket
+        emptyDir: {}
