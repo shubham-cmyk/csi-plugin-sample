@@ -43,7 +43,7 @@ jobs:
             --remote-name
           chmod +x kubectl
           sudo mv kubectl /usr/local/bin/
-          echo ${{ secrets.KUBECONFIG }} | base64 --decode > kubeconfig.yaml
+          printf '%s' "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig.yaml
 
   deploy:
     needs: build
