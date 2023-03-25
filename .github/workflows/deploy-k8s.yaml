@@ -1,0 +1,51 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+      - "master"
+      - shubham
+      
+  pull_request:
+    branches:
+      - main
+      - master
+      - shubham
+    types:
+      - closed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up kubectl
+      uses: docker://bitnami/kubectl:latest
+      with:
+        entrypoint: ''
+        args: |
+          install --confirm=false --namespace=default
+
+    - name: Upload manifest files as artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: manifests
+        path: manifest/
+
+    - name: Download manifest files from artifact
+      uses: actions/download-artifact@v2
+      with:
+        name: manifests
+
+    - name: Deploy to Kubernetes
+      env:
+        KUBECONFIG: ${{ secrets.KUBECONFIG }}
+      run: |
+        kubectl apply -f ${{ github.workspace }}/manifest/serviceAccount.yaml
+        kubectl apply -f ${{ github.workspace }}/manifest/clusterRole.yaml
+        kubectl apply -f ${{ github.workspace }}/manifest/clusterRoleBinding.yaml
+        kubectl apply -f ${{ github.workspace }}/manifest/secret.yaml
+        kubectl apply -f ${{ github.workspace }}/manifest/storageClass.yaml
