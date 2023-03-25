@@ -50,6 +50,9 @@ jobs:
           sudo mv kubectl /usr/local/bin/
           printf '%s' "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig.yaml
           
+      - name: Checkout code
+        uses: actions/checkout@v2
+          
       - name: Deploy to Kubernetes
         run: |
           export KUBECONFIG=kubeconfig.yaml
