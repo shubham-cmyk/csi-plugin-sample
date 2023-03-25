@@ -22,13 +22,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    # - name: Set up kubectl
-    #   uses: docker://bitnami/kubectl:latest
-    #   with:
-    #     entrypoint: ''
-    #     args: |
-    #       install --confirm=false --namespace=default
-
     - name: Upload manifest files as artifact
       uses: actions/upload-artifact@v2
       with:
@@ -42,11 +35,10 @@ jobs:
 
     - name: Deploy to Kubernetes
       env:
-        KUBECONFIG: ${{ github.workspace }}/config/my-kubeconfig.yaml
+        KUBECONFIG: ${{ secrets.KUBECONFIG }}
       run: |
-        kubectl apply -f manifest/serviceAccount.yaml
-        kubectl apply -f manifest/clusterRole.yaml
-        kubectl apply -f manifest/clusterRoleBinding.yaml
-        kubectl apply -f manifest/secret.yaml
-        kubectl apply -f manifest/storageClass.yaml
-
+        kubectl apply -f ${{ github.workspace }}/manifest/serviceAccount.yaml
+        kubectl apply -f ${{ github.workspace }}/manifest/clusterRole.yaml
+        kubectl apply -f ${{ github.workspace }}/manifest/clusterRoleBinding.yaml
+        kubectl apply -f ${{ github.workspace }}/manifest/secret.yaml
+        kubectl apply -f ${{ github.workspace }}/manifest/storageClass.yaml
