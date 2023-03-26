@@ -3,11 +3,9 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
       - "master"
   pull_request:
     branches:
-      - main
       - "master"
     types:
       - closed
@@ -32,47 +30,47 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}:4
 
-  deploy:
-    needs: build
-    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install and configure kubectl
-        run: |
-          VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
-          curl https://storage.googleapis.com/kubernetes-release/release/$VERSION/bin/linux/amd64/kubectl \
-            --progress-bar \
-            --location \
-            --remote-name
-          chmod +x kubectl
-          sudo mv kubectl /usr/local/bin/
-          printf '%s' "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig
+  # deploy:
+  #   needs: build
+  #   if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Install and configure kubectl
+  #       run: |
+  #         VERSION=$(curl --silent https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+  #         curl https://storage.googleapis.com/kubernetes-release/release/$VERSION/bin/linux/amd64/kubectl \
+  #           --progress-bar \
+  #           --location \
+  #           --remote-name
+  #         chmod +x kubectl
+  #         sudo mv kubectl /usr/local/bin/
+  #         printf '%s' "${{ secrets.KUBECONFIG }}" | base64 --decode > kubeconfig
 
-      - name: Download kubeconfig.yaml
-        uses: actions/download-artifact@v2
-        with:
-          name: kubeconfig
+  #     - name: Download kubeconfig.yaml
+  #       uses: actions/download-artifact@v2
+  #       with:
+  #         name: kubeconfig
 
-      - name: Checkout code
-        uses: actions/checkout@v2
+  #     - name: Checkout code
+  #       uses: actions/checkout@v2
           
-      - name: Deploy to Kubernetes
-        run: |
-          export KUBECONFIG=kubeconfig
+  #     - name: Deploy to Kubernetes
+  #       run: |
+  #         export KUBECONFIG=kubeconfig
           
-          # Replace placeholder with actual image name in controller-plugin.yaml and save it as new-controller-plugin.yaml
-          # sed "s|IMAGE_NAME_PLACEHOLDER|${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}|g" manifest/controller-plugin.yaml > manifest/new-controller-plugin.yaml
+  #         # Replace placeholder with actual image name in controller-plugin.yaml and save it as new-controller-plugin.yaml
+  #         # sed "s|IMAGE_NAME_PLACEHOLDER|${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}|g" manifest/controller-plugin.yaml > manifest/new-controller-plugin.yaml
           
-          kubectl apply -f manifest/serviceAccount.yaml
-          kubectl apply -f manifest/clusterRole.yaml
-          kubectl apply -f manifest/clusterRoleBinding.yaml
-          kubectl apply -f manifest/secret.yaml
-          kubectl apply -f manifest/storageClass.yaml
+  #         kubectl apply -f manifest/serviceAccount.yaml
+  #         kubectl apply -f manifest/clusterRole.yaml
+  #         kubectl apply -f manifest/clusterRoleBinding.yaml
+  #         kubectl apply -f manifest/secret.yaml
+  #         kubectl apply -f manifest/storageClass.yaml
 
-          # Apply the controller Plugin manifest
-          #kubectl apply -f manifest/new-controller-plugin.yaml
-          kubectl apply -f <(sed "s|IMAGE_NAME_PLACEHOLDER|${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}|g" manifest/controller-plugin.yaml)
+  #         # Apply the controller Plugin manifest
+  #         #kubectl apply -f manifest/new-controller-plugin.yaml
+  #         kubectl apply -f <(sed "s|IMAGE_NAME_PLACEHOLDER|${{ secrets.DOCKER_HUB_USERNAME }}/csi-plugin:${{ github.sha }}|g" manifest/controller-plugin.yaml)
 
-          # Apply the node Plugin manifest
+  #         # Apply the node Plugin manifest

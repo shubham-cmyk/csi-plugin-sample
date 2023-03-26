@@ -1,47 +1,43 @@
-name: Deploy to Kubernetes
+# name: Deploy to Kubernetes
 
-on:
-  push:
-    branches:
-      - main
-      - "master"
-      - shubham
+# on:
+#   push:
+#     branches:
+#       - "master"
 
-  pull_request:
-    branches:
-      - main
-      - master
-      - shubham
-    types:
-      - closed
+#   pull_request:
+#     branches:
+#       - master
+#     types:
+#       - closed
 
-env:
-  KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
+# env:
+#   KUBE_CONFIG_DATA: ${{ secrets.KUBECONFIG }}
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
 
-    steps:
-    - uses: actions/checkout@v2
+#     steps:
+#     - uses: actions/checkout@v2
 
-    - name: Upload manifest files as artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: manifests
-        path: manifest/
+#     - name: Upload manifest files as artifact
+#       uses: actions/upload-artifact@v2
+#       with:
+#         name: manifests
+#         path: manifest/
 
-    - name: Download manifest files from artifact
-      uses: actions/download-artifact@v2
-      with:
-        name: manifests
+#     - name: Download manifest files from artifact
+#       uses: actions/download-artifact@v2
+#       with:
+#         name: manifests
 
-    - name: Deploy to Kubernetes
-      env:
-        KUBECONFIG: ${{ secrets.KUBECONFIG }}
-      run: |
-        kubectl apply -f ${{ github.workspace }}/manifest/serviceAccount.yaml
-        kubectl apply -f ${{ github.workspace }}/manifest/clusterRole.yaml
-        kubectl apply -f ${{ github.workspace }}/manifest/clusterRoleBinding.yaml
-        kubectl apply -f ${{ github.workspace }}/manifest/secret.yaml
-        kubectl apply -f ${{ github.workspace }}/manifest/storageClass.yaml
+#     - name: Deploy to Kubernetes
+#       env:
+#         KUBECONFIG: ${{ secrets.KUBECONFIG }}
+#       run: |
+#         kubectl apply -f ${{ github.workspace }}/manifest/serviceAccount.yaml
+#         kubectl apply -f ${{ github.workspace }}/manifest/clusterRole.yaml
+#         kubectl apply -f ${{ github.workspace }}/manifest/clusterRoleBinding.yaml
+#         kubectl apply -f ${{ github.workspace }}/manifest/secret.yaml
+#         kubectl apply -f ${{ github.workspace }}/manifest/storageClass.yaml
