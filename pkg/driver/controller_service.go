@@ -71,7 +71,16 @@ func (d *Driver) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest)
 	}, nil
 }
 func (d *Driver) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest) (*csi.DeleteVolumeResponse, error) {
-	return nil, nil
+	logger.Info("DeleteVolume RPC is called")
+	volumeID := req.VolumeId
+
+	res, err := d.storage.DeleteVolume(ctx, volumeID)
+	logger.Info("Got the response %v", res.StatusCode)
+	if err != nil {
+		logger.Error("Failed provisoing the volume error %s\n", err.Error())
+		return nil, err
+	}
+	return &csi.DeleteVolumeResponse{}, nil
 }
 func (d *Driver) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
 	logger.Info("ControllerPublishVolume RPC is called")
