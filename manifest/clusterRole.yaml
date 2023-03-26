@@ -15,6 +15,7 @@ rules:
   - create
   - list 
   - watch
+  - patch
 - apiGroups:
   - storage.k8s.io
   resources:
