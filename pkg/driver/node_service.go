@@ -59,7 +59,7 @@ func (d *Driver) NodeGetInfo(ctx context.Context, req *csi.NodeGetInfoRequest) (
 		MaxVolumesPerNode: 5,
 		AccessibleTopology: &csi.Topology{
 			Segments: map[string]string{
-				"region": "BLR1",
+				"region": "blr1",
 			},
 		},
 	}, nil
