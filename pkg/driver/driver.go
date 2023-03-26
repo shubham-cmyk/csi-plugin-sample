@@ -89,6 +89,9 @@ func (d *Driver) Run() error {
 	csi.RegisterControllerServer(server, d)
 	csi.RegisterIdentityServer(server, d)
 
+	// Mark the Status of Driver to be ready if not found any error
+	d.ready = true
+
 	// Starting the Server
 	logger.Info("Starting the gRPC server")
 	err = server.Serve(listener)
@@ -97,7 +100,5 @@ func (d *Driver) Run() error {
 		return err
 	}
 
-	// Mark the Status of Driver to be ready if not found any error
-	d.ready = true
 	return nil
 }
