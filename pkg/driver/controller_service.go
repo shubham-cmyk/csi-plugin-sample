@@ -5,6 +5,7 @@ import (
 	logger "csi-plugin/logger"
 	"csi-plugin/pkg"
 	"fmt"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -114,7 +115,7 @@ func (d *Driver) ControllerPublishVolume(ctx context.Context, req *csi.Controlle
 		return nil, err
 	}
 
-	// Perform attachh volume to the node
+	// Perform attach volume to the node
 	action, res, err := d.storageAction.Attach(ctx, req.VolumeId, nodeID)
 	logger.Info("Got the response %v", res.StatusCode)
 	if err != nil {
@@ -123,7 +124,7 @@ func (d *Driver) ControllerPublishVolume(ctx context.Context, req *csi.Controlle
 	}
 
 	// Wait For the attach volume Action to get Completed
-	if err := d.waitForCompletion(req.VolumeId, action.ID); err != nil {
+	if err := d.waitForCompletionAttach(req.VolumeId, action.ID); err != nil {
 		logger.Error("Waiting for volume to be attached got error: %s", err.Error())
 		return nil, err
 	}
@@ -135,8 +136,30 @@ func (d *Driver) ControllerPublishVolume(ctx context.Context, req *csi.Controlle
 		},
 	}, nil
 }
-func (d *Driver) ControllerUnpublishVolume(context.Context, *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {
-	return nil, nil
+func (d *Driver) ControllerUnpublishVolume(ctx context.Context, req *csi.ControllerUnpublishVolumeRequest) (*csi.ControllerUnpublishVolumeResponse, error) {
+	logger.Info("ControllerUnpublishVolume RPC is called")
+
+	nodeID, err := strconv.Atoi(req.NodeId)
+	if err != nil {
+		logger.Error("was not able to convert nodeID to int value %s", err.Error())
+		return nil, err
+	}
+
+	// Perform de-attach volume to the node
+	action, res, err := d.storageAction.DetachByDropletID(ctx, req.VolumeId, nodeID)
+	logger.Info("Got the response %v", res.StatusCode)
+	if err != nil {
+		logger.Error("Failed to de-attach volume to the node %s", err.Error())
+		return nil, err
+	}
+
+	// Wait For the attach volume Action to get Completed
+	if err := d.waitForCompletionDeAttach(req.VolumeId, action.ID); err != nil {
+		logger.Error("Waiting for volume to be de-attached got error: %s", err.Error())
+		return nil, err
+	}
+
+	return &csi.ControllerUnpublishVolumeResponse{}, nil
 }
 func (d *Driver) ValidateVolumeCapabilities(context.Context, *csi.ValidateVolumeCapabilitiesRequest) (*csi.ValidateVolumeCapabilitiesResponse, error) {
 	return nil, nil
@@ -185,8 +208,8 @@ func (d *Driver) ControllerGetVolume(context.Context, *csi.ControllerGetVolumeRe
 	return nil, nil
 }
 
-func (d *Driver) waitForCompletion(volumeID string, actionID int) error {
-	logger.Info("waitForCompletion RPC is called")
+func (d *Driver) waitForCompletionAttach(volumeID string, actionID int) error {
+	logger.Info("waitForCompletionAttach RPC is called")
 	// Check in every 5 second whether the Volume is attached to node or not with timeout of 5 minute
 	err := wait.Poll(5*time.Second, 5*time.Minute, func() (done bool, err error) {
 		action, res, err := d.storageAction.Get(context.Background(), volumeID, actionID)
@@ -197,6 +220,25 @@ func (d *Driver) waitForCompletion(volumeID string, actionID int) error {
 
 		if action.Status == godo.ActionCompleted {
 			return true, nil
+		}
+		return false, nil
+	})
+	return err
+}
+
+func (d *Driver) waitForCompletionDeAttach(volumeID string, actionID int) error {
+	logger.Info("waitForCompletionDeAttach RPC is called")
+	// Check in every 5 second whether the Volume is de-attached to node or not with timeout of 5 minute
+	err := wait.Poll(5*time.Second, 5*time.Minute, func() (done bool, err error) {
+		action, res, err := d.storageAction.Get(context.Background(), volumeID, actionID)
+		// Http status not found of the volume confirm that volume is no longer present in provider
+		logger.Info("Got the response %v", res.StatusCode)
+		if err != nil && (res.StatusCode == http.StatusNotFound) {
+			return true, nil
+		}
+
+		if action.Status == godo.ActionCompleted {
+			return false, nil
 		}
 		return false, nil
 	})
