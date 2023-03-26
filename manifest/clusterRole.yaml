@@ -13,6 +13,8 @@ rules:
   - delete
   - update
   - create
+  - list 
+  - watch
 - apiGroups:
   - storage.k8s.io
   resources:
@@ -23,6 +25,8 @@ rules:
   verbs:
   - patch
   - get
+  - list
+  - watch
 - nonResourceURLs:
   - "/api/v1/events"
   verbs:

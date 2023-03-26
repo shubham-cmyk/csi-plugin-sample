@@ -14,7 +14,7 @@ func main() {
 	var (
 		endpoint = flag.String("endpoint", "", "Endpoint our gRPC server would run at")
 		token    = flag.String("token", "", "Token of the storage provider")
-		region   = flag.String("region", "BLR1", "region wher the volumes are going to be provisioned")
+		region   = flag.String("region", "blr1", "region wher the volumes are going to be provisioned")
 	)
 
 	// Parse the flags
