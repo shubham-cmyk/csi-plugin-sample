@@ -3,6 +3,7 @@ package driver
 import (
 	"context"
 	logger "csi-plugin/logger"
+	"csi-plugin/pkg"
 	"fmt"
 	"strconv"
 	"time"
@@ -73,24 +74,25 @@ func (d *Driver) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest)
 	return nil, nil
 }
 func (d *Driver) ControllerPublishVolume(ctx context.Context, req *csi.ControllerPublishVolumeRequest) (*csi.ControllerPublishVolumeResponse, error) {
-	fmt.Println("ControllerPublishVolume of controller plugin was called")
+	logger.Info("ControllerPublishVolume RPC is called")
 
 	// check if volumeID is present and volume is available on SP
 	if req.VolumeId == "" {
 		return nil, status.Error(codes.InvalidArgument, "VolumeID is mandatory in ControllerPublishVolume request")
 	}
 
-	// if nodeID is set, and node is actually present on SP
+	// check if NodeId is present and node is actually present on SP
 	if req.NodeId == "" {
-		return nil, status.Error(codes.InvalidArgument, "NodeID is mandatory in CPVolume request")
+		return nil, status.Error(codes.InvalidArgument, "NodeID is mandatory in ControllerPublishVolume request")
 	}
 
-	vol, _, err := d.storage.GetVolume(ctx, req.VolumeId)
+	vol, res, err := d.storage.GetVolume(ctx, req.VolumeId)
+	logger.Info("Got the response %v", res.StatusCode)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Volume is not available anymore")
 	}
 
-	// check if the volume is already attache
+	// check if the volume is already attached to a node
 	// if it's attached to the correct node
 	// or its attached to a wrong node
 
@@ -99,20 +101,28 @@ func (d *Driver) ControllerPublishVolume(ctx context.Context, req *csi.Controlle
 
 	nodeID, err := strconv.Atoi(req.NodeId)
 	if err != nil {
-		return nil, status.Error(codes.Internal, "was not able to convert nodeID to int value")
-	}
-	action, _, err := d.storageAction.Attach(ctx, req.VolumeId, nodeID)
-	if err != nil {
-		return nil, status.Error(codes.Internal, fmt.Sprintf("failed attaching volume to the node, error %s", err.Error()))
+		logger.Error("was not able to convert nodeID to int value %s", err.Error)
+		return nil, err
 	}
 
+	// Perform attachh volume to the node
+	action, res, err := d.storageAction.Attach(ctx, req.VolumeId, nodeID)
+	logger.Info("Got the response %v", res.StatusCode)
+	if err != nil {
+		logger.Error("Failed to attach volume to the node %s", err.Error)
+		return nil, err
+	}
+
+	// Wait For the attach volume Action to get Completed
 	if err := d.waitForCompletion(req.VolumeId, action.ID); err != nil {
-		return nil, status.Error(codes.Internal, fmt.Sprintf("error %s, waiting for volume to be attached", err.Error()))
+		logger.Error("Waiting for volume to be attached got error:", err.Error())
+		return nil, err
 	}
 
 	return &csi.ControllerPublishVolumeResponse{
+		// Using Publish Context we are going to pass some key-value which may be need in later RPC
 		PublishContext: map[string]string{
-			volNameKeyFromContPub: vol.Name,
+			pkg.VolNameKeyFromContPub: vol.Name,
 		},
 	}, nil
 }
@@ -166,14 +176,17 @@ func (d *Driver) ControllerGetVolume(context.Context, *csi.ControllerGetVolumeRe
 	return nil, nil
 }
 
-func (d *Driver) waitForCompletion(volID string, actionID int) error {
-	err := wait.Poll(1*time.Second, 5*time.Minute, func() (done bool, err error) {
-		a, _, err := d.storageAction.Get(context.Background(), volID, actionID)
+func (d *Driver) waitForCompletion(volumeID string, actionID int) error {
+	logger.Info("waitForCompletion RPC is called")
+	// Check in every 5 second whether the Volume is attached to node or not with timeout of 5 minute
+	err := wait.Poll(5*time.Second, 5*time.Minute, func() (done bool, err error) {
+		action, res, err := d.storageAction.Get(context.Background(), volumeID, actionID)
+		logger.Info("Got the response %v", res.StatusCode)
 		if err != nil {
 			return false, nil
 		}
 
-		if a.Status == godo.ActionCompleted {
+		if action.Status == godo.ActionCompleted {
 			return true, nil
 		}
 		return false, nil
