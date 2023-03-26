@@ -28,7 +28,7 @@ func (d *Driver) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest)
 	// make sure the value here is not less than or = 0
 	// requriedBytes is not more than limiteBytes
 	sizeBytes := req.CapacityRange.GetRequiredBytes()
-	logger.Info("The Required volume size is %s", sizeBytes)
+	logger.Info("The Required volume size is %v", sizeBytes)
 	// make sure volume capabilities have been specified
 	if req.VolumeCapabilities == nil || len(req.VolumeCapabilities) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "VolumeCapabilities have not been specified")
@@ -110,7 +110,7 @@ func (d *Driver) ControllerPublishVolume(ctx context.Context, req *csi.Controlle
 
 	nodeID, err := strconv.Atoi(req.NodeId)
 	if err != nil {
-		logger.Error("was not able to convert nodeID to int value %s", err.Error)
+		logger.Error("was not able to convert nodeID to int value %s", err.Error())
 		return nil, err
 	}
 
@@ -118,13 +118,13 @@ func (d *Driver) ControllerPublishVolume(ctx context.Context, req *csi.Controlle
 	action, res, err := d.storageAction.Attach(ctx, req.VolumeId, nodeID)
 	logger.Info("Got the response %v", res.StatusCode)
 	if err != nil {
-		logger.Error("Failed to attach volume to the node %s", err.Error)
+		logger.Error("Failed to attach volume to the node %s", err.Error())
 		return nil, err
 	}
 
 	// Wait For the attach volume Action to get Completed
 	if err := d.waitForCompletion(req.VolumeId, action.ID); err != nil {
-		logger.Error("Waiting for volume to be attached got error:", err.Error())
+		logger.Error("Waiting for volume to be attached got error: %s", err.Error())
 		return nil, err
 	}
 
