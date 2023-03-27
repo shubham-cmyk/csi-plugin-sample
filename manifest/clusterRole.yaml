@@ -8,6 +8,7 @@ rules:
   resources:
   - persistentvolumeclaims
   - persistentvolumes
+  - events
   verbs:
   - get
   - delete
