@@ -15,15 +15,15 @@ import (
 )
 
 type Driver struct {
-	name     string
-	region   string
-	endpoint string
+	Name     string
+	Region   string
+	Endpoint string
 
-	srv   *grpc.Server // grpc Server
-	ready bool         //  health check
+	// Srv   *grpc.Server // grpc Server
+	Ready bool //  health check
 
-	storage       godo.StorageService // storage provider client
-	storageAction godo.StorageActionsService
+	Storage       godo.StorageService // storage provider client
+	StorageAction godo.StorageActionsService
 }
 
 type InputParams struct {
@@ -42,18 +42,18 @@ func NewDriver(params InputParams) (*Driver, error) {
 	client := godo.NewFromToken(params.Token)
 
 	return &Driver{
-		name:          params.Name,
-		endpoint:      params.Endpoint,
-		region:        params.Region,
-		storage:       client.Storage,
-		storageAction: client.StorageActions,
+		Name:          params.Name,
+		Endpoint:      params.Endpoint,
+		Region:        params.Region,
+		Storage:       client.Storage,
+		StorageAction: client.StorageActions,
 	}, nil
 }
 
 // Start the gRPC server
 func (d *Driver) Run() error {
 
-	url, err := url.Parse(d.endpoint)
+	url, err := url.Parse(d.Endpoint)
 	if err != nil {
 		logger.Error("Error parsing the endpoint: %s\n", err.Error())
 		return err
@@ -90,7 +90,7 @@ func (d *Driver) Run() error {
 	csi.RegisterIdentityServer(server, d)
 
 	// Mark the Status of Driver to be ready if not found any error
-	d.ready = true
+	d.Ready = true
 
 	// Starting the Server
 	logger.Info("Starting the gRPC server")

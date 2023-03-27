@@ -42,7 +42,7 @@ func (d *Driver) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest)
 	// create the request struct
 	volReq := godo.VolumeCreateRequest{
 		Name:          req.Name,
-		Region:        d.region,
+		Region:        d.Region,
 		SizeGigaBytes: sizeBytes / gb,
 	}
 
@@ -57,7 +57,7 @@ func (d *Driver) CreateVolume(ctx context.Context, req *csi.CreateVolumeRequest)
 	// handle AccessibilityRequirements
 
 	// actually call DO api to create the volume
-	vol, res, err := d.storage.CreateVolume(ctx, &volReq)
+	vol, res, err := d.Storage.CreateVolume(ctx, &volReq)
 	logger.Info("Got the response %v", res.StatusCode)
 	if err != nil {
 		return nil, status.Error(codes.Internal, fmt.Sprintf("Failed provisoing the volume error %s\n", err.Error()))
@@ -75,7 +75,7 @@ func (d *Driver) DeleteVolume(ctx context.Context, req *csi.DeleteVolumeRequest)
 	logger.Info("DeleteVolume RPC is called")
 	volumeID := req.VolumeId
 
-	res, err := d.storage.DeleteVolume(ctx, volumeID)
+	res, err := d.Storage.DeleteVolume(ctx, volumeID)
 	logger.Info("Got the response %v", res.StatusCode)
 	if err != nil {
 		logger.Error("Failed provisoing the volume error %s\n", err.Error())
@@ -96,7 +96,7 @@ func (d *Driver) ControllerPublishVolume(ctx context.Context, req *csi.Controlle
 		return nil, status.Error(codes.InvalidArgument, "NodeID is mandatory in ControllerPublishVolume request")
 	}
 
-	vol, res, err := d.storage.GetVolume(ctx, req.VolumeId)
+	vol, res, err := d.Storage.GetVolume(ctx, req.VolumeId)
 	logger.Info("Got the response %v", res.StatusCode)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "Volume is not available anymore")
@@ -116,7 +116,7 @@ func (d *Driver) ControllerPublishVolume(ctx context.Context, req *csi.Controlle
 	}
 
 	// Perform attach volume to the node
-	action, res, err := d.storageAction.Attach(ctx, req.VolumeId, nodeID)
+	action, res, err := d.StorageAction.Attach(ctx, req.VolumeId, nodeID)
 	logger.Info("Got the response %v", res.StatusCode)
 	if err != nil {
 		logger.Error("Failed to attach volume to the node %s", err.Error())
@@ -146,7 +146,7 @@ func (d *Driver) ControllerUnpublishVolume(ctx context.Context, req *csi.Control
 	}
 
 	// Perform de-attach volume to the node
-	action, res, err := d.storageAction.DetachByDropletID(ctx, req.VolumeId, nodeID)
+	action, res, err := d.StorageAction.DetachByDropletID(ctx, req.VolumeId, nodeID)
 	logger.Info("Got the response %v", res.StatusCode)
 	if err != nil {
 		logger.Error("Failed to de-attach volume to the node %s", err.Error())
@@ -212,7 +212,7 @@ func (d *Driver) waitForCompletionAttach(volumeID string, actionID int) error {
 	logger.Info("waitForCompletionAttach RPC is called")
 	// Check in every 5 second whether the Volume is attached to node or not with timeout of 5 minute
 	err := wait.Poll(5*time.Second, 5*time.Minute, func() (done bool, err error) {
-		action, res, err := d.storageAction.Get(context.Background(), volumeID, actionID)
+		action, res, err := d.StorageAction.Get(context.Background(), volumeID, actionID)
 		logger.Info("Got the response %v", res.StatusCode)
 		if err != nil {
 			return false, nil
@@ -230,7 +230,7 @@ func (d *Driver) waitForCompletionDeAttach(volumeID string, actionID int) error 
 	logger.Info("waitForCompletionDeAttach RPC is called")
 	// Check in every 5 second whether the Volume is de-attached to node or not with timeout of 5 minute
 	err := wait.Poll(5*time.Second, 5*time.Minute, func() (done bool, err error) {
-		action, res, err := d.storageAction.Get(context.Background(), volumeID, actionID)
+		action, res, err := d.StorageAction.Get(context.Background(), volumeID, actionID)
 		// Http status not found of the volume confirm that volume is no longer present in provider
 		logger.Info("Got the response %v", res.StatusCode)
 		if err != nil && (res.StatusCode == http.StatusNotFound) {

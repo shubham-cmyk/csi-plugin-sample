@@ -33,7 +33,7 @@ func (d *Driver) Probe(context.Context, *csi.ProbeRequest) (*csi.ProbeResponse, 
 	logger.Info("Probe RPC is called")
 	return &csi.ProbeResponse{
 		Ready: &wrapperspb.BoolValue{
-			Value: d.ready,
+			Value: d.Ready,
 		},
 	}, nil
 }
