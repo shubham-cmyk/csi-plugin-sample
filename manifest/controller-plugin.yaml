@@ -45,7 +45,7 @@ spec:
           limits:
             cpu: "1"
             memory: "256Mi"
-      - image: IMAGE_NAME_PLACEHOLDER #Main Container for the csi controller
+      - image: shubham192001/csi-plugin:latest #Main Container for the csi controller
         name: csi-controller-driver
         resources:
           limits:
