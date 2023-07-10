@@ -38,12 +38,18 @@ spec:
           - name: registration-dir
             mountPath: /registration
       - name: node-plugin # Main Container 
-        image: IMAGE_NAME_PLACEHOLDER
+        image: shubham192001/csi-plugin:latest
         args:
           - "--endpoint=$(CSI_ENDPOINT)"
+          - "--token=$(DO_TOKEN)"
         env:
         - name: CSI_ENDPOINT
           value: unix:///csi/csi.sock
+        - name: DO_TOKEN  # Environment variable for the DigitalOcean access token
+          valueFrom:
+            secretKeyRef:
+              name: do-token # The name of the secret
+              key: access-token # The key within the secret
         securityContext:
           privileged: true
         volumeMounts:
