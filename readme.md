@@ -56,3 +56,5 @@ kubectl apply -f manifest/
 This will create all necessary resources (ServiceAccount, StorageClass, ClusterRole, ClusterRoleBinding, Controller Plugin Deployment, and Secret) and deploy your sample CSI plugin on your Kubernetes cluster.
 
 Now, these sections are updated to reflect your project structure and requirements.
+
+Check the Bot
